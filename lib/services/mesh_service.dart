@@ -1,37 +1,59 @@
-import 'package:nearby_connections/nearby_connections.dart';
 import 'dart:typed_data';
+
+import 'package:nearby_connections/nearby_connections.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 class MeshService {
   final Strategy strategy = Strategy.P2P_STAR;
 
   String userName = "User";
 
-  /// Start advertising (make this device visible)
+  /// Request all permissions at once
+  Future<void> requestPermissions() async {
+    await [
+      Permission.location,
+      Permission.bluetooth,
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.bluetoothAdvertise,
+      Permission.nearbyWifiDevices,
+    ].request();
+  }
+
+  /// Start advertising
   Future<void> startAdvertising() async {
     try {
       await Nearby().startAdvertising(
         userName,
         strategy,
         onConnectionInitiated: (id, info) {
+          print("Connection initiated: $id");
+
           Nearby().acceptConnection(
             id,
-            onPayLoadRecieved: (endid, payload) {
-              print("Message received: ${payload.bytes}");
+            onPayLoadRecieved: (endpointId, payload) {
+              if (payload.bytes != null) {
+                String message = String.fromCharCodes(payload.bytes!);
+                print("Received: $message");
+              }
             },
           );
         },
         onConnectionResult: (id, status) {
-          print("Connection result: $status");
+          print("Connection Result: $status");
         },
         onDisconnected: (id) {
           print("Disconnected: $id");
         },
       );
+
+      print("Advertising Started");
     } catch (e) {
-      print("Advertising error: $e");
+      print("Advertising Error: $e");
     }
   }
 
-  /// Start discovering nearby devices
+  /// Discover nearby devices
   Future<List<String>> discoverDevices() async {
     List<String> devices = [];
 
@@ -40,53 +62,66 @@ class MeshService {
         userName,
         strategy,
         onEndpointFound: (id, name, serviceId) {
-          print("Found device: $name");
+          print("Found Device: $name");
 
-          devices.add(name);
+          if (!devices.contains(name)) {
+            devices.add(name);
+          }
 
-          // Auto request connection (optional)
           Nearby().requestConnection(
             userName,
             id,
             onConnectionInitiated: (id, info) {
+              print("Connecting to $name");
+
               Nearby().acceptConnection(
                 id,
-                onPayLoadRecieved: (endid, payload) {
-                  print("Received: ${payload.bytes}");
+                onPayLoadRecieved: (endpointId, payload) {
+                  if (payload.bytes != null) {
+                    String message = String.fromCharCodes(payload.bytes!);
+                    print("Received: $message");
+                  }
                 },
               );
             },
             onConnectionResult: (id, status) {
-              print("Status: $status");
+              print("Connection Status: $status");
             },
-            onDisconnected: (id) {},
+            onDisconnected: (id) {
+              print("Disconnected: $id");
+            },
           );
         },
         onEndpointLost: (id) {
-          print("Device lost: $id");
+          print("Device Lost: $id");
         },
       );
+
+      print("Discovery Started");
     } catch (e) {
-      print("Discovery error: $e");
+      print("Discovery Error: $e");
     }
 
     return devices;
   }
 
-  /// Send message to connected device
+  /// Send message
   Future<void> sendMessage(String endpointId, String message) async {
     try {
       await Nearby().sendBytesPayload(
         endpointId,
         Uint8List.fromList(message.codeUnits),
       );
+
+      print("Message Sent");
     } catch (e) {
-      print("Send error: $e");
+      print("Send Error: $e");
     }
   }
 
   /// Stop all connections
   Future<void> stopAll() async {
     await Nearby().stopAllEndpoints();
+    print("Stopped All Connections");
   }
 }
