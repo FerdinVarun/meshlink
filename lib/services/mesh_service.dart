@@ -1,5 +1,5 @@
 import 'package:nearby_connections/nearby_connections.dart';
-
+import 'dart:typed_data';
 class MeshService {
   final Strategy strategy = Strategy.P2P_STAR;
 
@@ -78,7 +78,7 @@ class MeshService {
     try {
       await Nearby().sendBytesPayload(
         endpointId,
-        message.codeUnits,
+        Uint8List.fromList(message.codeUnits),
       );
     } catch (e) {
       print("Send error: $e");
