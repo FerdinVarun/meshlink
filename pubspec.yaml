@@ -1,0 +1,49 @@
+name: meshlink
+description: Offline Emergency Communication App
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  provider: ^6.1.5
+
+  # Google Fonts
+  google_fonts: ^6.3.1
+
+  # Icons
+  flutter_svg: ^2.2.0
+
+  # Local Storage
+  shared_preferences: ^2.5.3
+
+  # SQLite
+  sqflite: ^2.4.2
+
+  path: ^1.9.1
+
+  # Encryption
+  encrypt: ^5.0.3
+
+  # Permissions
+  permission_handler: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
